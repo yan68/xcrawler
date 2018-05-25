@@ -25,8 +25,8 @@ class XCrawler
             'log_step' => 50, // 每爬取多少页面记录一次日志
             'base_uri' => '', // 爬取根域名
             'interval' => 0, // 每次爬取间隔时间
-            'queue_len' => '', // 队列长度，用于记录队列进度日志
-            'retry_count' => 5, // 失败重试次数
+            'queue_len' => NULL, // 队列长度，用于记录队列进度日志
+            'retry_count' => 2, // 失败重试次数
             'check_black' => 1, // 是否判断黑名单
             'requests' => function () { // 需要发送的请求
                 // 示例代码:
@@ -36,6 +36,7 @@ class XCrawler
                     $request = [
                         'method' => 'get',
                         'uri' => $base_url.$i,
+                        'debug' => true, // 是否开启debug
                         'callback_data' => [ // 回调参数
                             'page' => $i,
                         ],
@@ -83,7 +84,8 @@ class XCrawler
             redis_del($this->redis_prefix.'*');
             $last_log_process = 0;
             foreach ($this->config['requests']() as $key => $val) {
-                $request = $this->getRequest($val);
+                // 请求格式化
+                $request = $this->requestFormat($val);
                 // 判断请求是否已加入黑名单(目前仅支持get请求)
                 if ($this->config['check_black'] && $this->isBlackRequest($request)) {
                     $this->log->info($request['uri'].'为黑名单URL, 已跳过');
@@ -151,8 +153,8 @@ class XCrawler
                 while (($request = redis()->rpop($this->redis_prefix.':queue:error')) || ($request = redis()->rpop($this->redis_prefix.':queue'))) {
                     // 记录正在进行的请求(用于成功回调函数内可获取该请求，和断点续爬)
                     redis()->hset($this->redis_prefix.':requesting', $i, $request);
-                    // 返回请求
-                    $request = json_decode($request, true);
+                    // 生成真实请求
+                    $request = $this->getRealRequest($request);
                     yield function () use ($client, $request) {
                         $options = $request;
                         return $client->requestAsync($request['method'], $request['uri'], $options);
@@ -234,7 +236,8 @@ class XCrawler
                     if ($retry_count >= $this->config['retry_count'])
                     {
                         // 调用爬取失败回调函数
-                        $this->config['error'](json_decode($request, true), $reason->getMessage());
+                        $result = $reason->getResponse() ? $reason->getResponse()->getBody()->getContents() : null;
+                        $this->config['error'](json_decode($request, true), $reason->getMessage(), $result);
                         /* 记录请求错误日志 */
                         $error_log = [
                             'prefix' => $this->redis_prefix,
@@ -271,7 +274,8 @@ class XCrawler
         $end_log = "爬取 done".PHP_EOL;
         $end_log .= "花费时间:".$take_time.'s'.PHP_EOL;
         $end_log .= "线程数:".$concurrency.PHP_EOL;
-        $end_log .= "本次爬取页数:".redis()->get($this->redis_prefix.':total').PHP_EOL;
+        $end_log .= "总页数:".redis()->get($this->redis_prefix.':total').PHP_EOL;
+        $end_log .= "请求成功次数:".$this->stat_data['success_count'].PHP_EOL;
         $end_log .= "请求失败次数:".$this->stat_data['request_error_pages'].PHP_EOL;
         $end_log .= "解析失败次数:".$this->stat_data['save_error_pages'].PHP_EOL;
         $end_log = trim($end_log, PHP_EOL);
@@ -283,11 +287,30 @@ class XCrawler
     }
 
     /**
-     * 获取请求
+     * 获取真实请求数据（传入guzzle的请求数据）
+     */
+    protected function getRealRequest($request)
+    {
+        $request = json_decode($request, true);
+        // 转化multipart中的filepath数据（上传文件数据）
+        if (!empty($request['multipart'])) {
+            foreach ($request['multipart'] as $key => $val) {
+                if (empty($val['filepath'])) {
+                    continue;
+                }
+                $request['multipart'][$key]['contents'] = fopen($val['filepath'], 'r');
+                unset($request['multipart'][$key]['filepath']);
+            }
+        }
+        return $request;
+    }
+
+    /**
+     * 获取格式化后的请求
      * @param  string|array $request 请求内容
      * @return array          格式化后的请求
      */
-    protected function getRequest($request)
+    protected function requestFormat($request)
     {
         // 如果请求内容为字符串/数字，则把字符串/数字当作url转为get数组请求。
         if (is_string($request) || is_numeric($request))
@@ -313,7 +336,7 @@ class XCrawler
      */
     public function addRequest($request)
     {
-        $request = $this->getRequest($request);
+        $request = $this->requestFormat($request);
         // 验证url合法性
         $check_uri = (strstr($request['uri'], 'http:') || strstr($request['uri'], 'https:')) ? $request['uri'] : 'http:'.$request['uri'];
         if (!filter_var($check_uri, FILTER_VALIDATE_URL)) {
