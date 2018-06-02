@@ -15,7 +15,7 @@ class Utils
     {
         $paths = [
             __DIR__ . '/../vendor/autoload.php', // 当xcrawler被clone使用时
-            __DIR__ . '/../../../vendor/autoload.php', // 当xcrawler作为composer包被引入时
+            __DIR__ . '/../../../../vendor/autoload.php', // 当xcrawler作为composer包被引入时
         ];
 
         $root_path = null;
