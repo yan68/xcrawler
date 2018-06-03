@@ -169,6 +169,14 @@ class XCrawler
                     $result = $response->getBody()->getContents();
                     // 调用爬取成功回调函数
                     $request = json_decode($request, true);
+                    // 减少剩余爬取页面数
+                    Utils::redis()->decr($this->redis_prefix.':overplus');
+                    // 在请求中hash中删除该请求
+                    Utils::redis()->hdel($this->redis_prefix.':requesting', $index);
+                    // 删除该请求失败重试次数
+                    Utils::redis()->hdel($this->redis_prefix.':retry_count', json_encode($request));
+
+                    // 执行请求成功回调函数
                     try {
                         $callback_res = $this->config['success']($result, $request, $this, $response->getHeaders());
                         // 判断回调函数状态
@@ -199,12 +207,6 @@ class XCrawler
                         $this->stat_data['save_error_pages']++;
                     }
                     /* 获取总成功爬取页面数 */
-                    // 减少剩余爬取页面数
-                    Utils::redis()->decr($this->redis_prefix.':overplus');
-                    // 在请求中hash中删除该请求
-                    Utils::redis()->hdel($this->redis_prefix.':requesting', $index);
-                    // 删除该请求失败重试次数
-                    Utils::redis()->hdel($this->redis_prefix.':retry_count', json_encode($request));
                     $total = Utils::redis()->get($this->redis_prefix.':total');
                     $overplus = Utils::redis()->get($this->redis_prefix.':overplus');
                     $success_count = $overplus == 0 ? $total : $total - $overplus;
