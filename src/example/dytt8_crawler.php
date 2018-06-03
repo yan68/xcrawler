@@ -27,12 +27,12 @@ $xcrawler = new XCrawler([
             }
             $url = 'http://www.dytt8.net'.dom_filter($node, 'a:nth-child(2)', 'attr', 'href');
 
-            // 把影片url、name推送到redis队列，以便进一步爬取影片下载链接
             $data = [
                 'name' => $name,
                 'url' => $url,
                 'time' => dom_filter($node, '.inddline font', 'html'),
             ];
+            // 把影片url、name推送到redis队列，以便进一步爬取影片下载链接
             redis()->lpush('dytt8:detail_queue', json_encode($data));
             $list[] = $data;
         });
