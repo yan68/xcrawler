@@ -8,12 +8,18 @@ XCrawler - 轻量级、易维护的PHP爬虫框架
 - 支持失败重试、代理、断点续爬
 - 完善的爬取进度日志
 - 支持基于xpath、css选择器解析内容
-- 模拟浏览器行为，如user-agent、cookie、提交表单
+- 支持模拟浏览器行为，如user-agent、cookie、提交表单
 - 健壮的底层库，HTTP客户端基于guzzle，dom解析基于symfony/dom-crawler库
 
-查看文档: https://xcrawler.yanshuju.com/docs/
+## 安装
 
-GitHub地址: https://github.com/wyan001/xcrawler
+```
+composer require xcrawler/xcrawler
+```
+
+## 文档地址
+
+查看文档: https://xcrawler.yanshuju.com/docs/
 
 ## 交流
 

@@ -1,6 +1,6 @@
 {
     "name": "xcrawler/xcrawler",
-    "description": "A fast, simple and powerful PHP web crawler (scrapy/spider) 快速、简介且强大爬虫/采集框架",
+    "description": "A fast, simple and powerful PHP web crawler (scrapy/spider) 快速、简洁且强大的爬虫/采集框架",
     "license": "MIT",
     "authors": [
         {
