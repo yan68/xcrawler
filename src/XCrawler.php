@@ -199,6 +199,12 @@ class XCrawler
                         $this->stat_data['save_error_pages']++;
                     }
                     /* 获取总成功爬取页面数 */
+                    // 减少剩余爬取页面数
+                    Utils::redis()->decr($this->redis_prefix.':overplus');
+                    // 在请求中hash中删除该请求
+                    Utils::redis()->hdel($this->redis_prefix.':requesting', $index);
+                    // 删除该请求失败重试次数
+                    Utils::redis()->hdel($this->redis_prefix.':retry_count', json_encode($request));
                     $total = Utils::redis()->get($this->redis_prefix.':total');
                     $overplus = Utils::redis()->get($this->redis_prefix.':overplus');
                     $success_count = $overplus == 0 ? $total : $total - $overplus;
@@ -207,12 +213,6 @@ class XCrawler
                         $process = round(($success_count / $total), 2)*100;
                         $this->log->info('爬取进度:'.$process.'%, 已爬取:'.$success_count.'个页面, 剩余页面:'.$overplus);
                     }
-                    // 减少剩余爬取页面数
-                    Utils::redis()->decr($this->redis_prefix.':overplus');
-                    // 在请求中hash中删除该请求
-                    Utils::redis()->hdel($this->redis_prefix.':requesting', $index);
-                    // 删除该请求失败重试次数
-                    Utils::redis()->hdel($this->redis_prefix.':retry_count', json_encode($request));
                     // 爬取时间间隔
                     sleep($this->config['interval']);
                 },
