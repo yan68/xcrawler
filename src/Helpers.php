@@ -36,7 +36,7 @@ if (!function_exists('dom_filter')) {
      */
     function dom_filter(Crawler $crawler, $selector, $method, $arguments = '')
     {
-        return Utils::domFilter($crawler, $selector, $method, $arguments = '');
+        return Utils::domFilter($crawler, $selector, $method, $arguments);
     }
 }
 
@@ -51,6 +51,6 @@ if (!function_exists('dom_filter_xpath')) {
      */
     function dom_filter_xpath(Crawler $crawler, $selector, $method, $arguments = '')
     {
-        return Utils::domFilterXpath($crawler, $selector, $method, $arguments = '');
+        return Utils::domFilterXpath($crawler, $selector, $method, $arguments);
     }
 }
