@@ -12,8 +12,8 @@
         "predis/predis": "^1.1",
         "monolog/monolog": "^1.23",
         "guzzlehttp/guzzle": "^6.3",
-        "symfony/dom-crawler": "^3.4",
-        "symfony/css-selector": "^3.4"
+        "symfony/dom-crawler": "~4.0",
+        "symfony/css-selector": "~4.0"
     },
     "autoload": {
         "psr-4": {
