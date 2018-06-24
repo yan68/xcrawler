@@ -13,7 +13,7 @@ if (!function_exists('redis')) {
     }
 }
 
-if (!function_exists('redis')) {
+if (!function_exists('redis_del')) {
     /**
      * 删除redis数据(支持通配符删除)
      * @param  string $key 需要删除的key
