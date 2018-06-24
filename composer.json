@@ -9,6 +9,7 @@
         }
     ],
     "require": {
+        "php": "^7.1.3",
         "predis/predis": "^1.1",
         "monolog/monolog": "^1.23",
         "guzzlehttp/guzzle": "^6.3",
