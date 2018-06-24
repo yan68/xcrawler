@@ -46,7 +46,7 @@ class XCrawler
             },
             'success' => function ($result, $request) { // 爬取成功的回调函数
             },
-            'error' => function ($request, $error_msg) { // 爬取失败的回调函数
+            'error' => function ($request, $error_msg, $result) { // 爬取失败的回调函数
             },
         );
     
