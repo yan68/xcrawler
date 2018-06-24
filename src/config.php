@@ -10,7 +10,7 @@ return [
 
     // redis配置
     'redis' => [
-        'prefix' => 'xcrawler:',
+        'prefix' => null,
         'host' => '127.0.0.1',
         'password' => null,
         'port' => 6379,
