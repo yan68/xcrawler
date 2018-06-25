@@ -1,11 +1,12 @@
 <?php
 
+use XCrawler\Utils;
 // 默认配置
 return [
     // 日志配置
     'log' => [
         // 日志文件路径
-        'path' => 'log/xcrawler-'.date('Y-m-d').'.log',
+        'path' => Utils::rootPath().'log/xcrawler-'.date('Y-m-d').'.log',
     ],
 
     // redis配置
