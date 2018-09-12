@@ -195,11 +195,12 @@ class XCrawler
                         }
                     } catch (\Exception $e) {
                         /* 记录爬取错误日志 */
+                        $error_message = $e->getMessage().' in '.$e->getFile().' on '.$e->getLine();
                         $error_log = [
                             'prefix' => $this->redis_prefix,
                             'request' => $request,
                             'error_type' => 'crawler_exception',
-                            'reason' => $e->getMessage(),
+                            'reason' => $error_message,
                             'error_time' => time(),
                         ];
                         $this->log->error('数据解析失败', $error_log);
